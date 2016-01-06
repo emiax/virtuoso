@@ -6,18 +6,18 @@ var midiPlayer = {};
 
 var NOTE_ON = 144;
 var NOTE_OFF = 128;
-var ALL_NOTES_OFF = 123;
 
-output.sendMessage([ALL_NOTES_OFF, 0, 0]);
-
-
-midiPlayer.playNote = function (midiNote, velocity, delay, duration) {
+midiPlayer.playNote = function (midiNote, velocity, delay, duration, channel) {
+  if (channel < 0 || channel >= 16) {
+    throw "invalid midi channel";
+  }
+//  console.log(channel);
   setTimeout(function () {
-    output.sendMessage([NOTE_ON, midiNote, velocity]);
+    output.sendMessage([NOTE_ON + channel, midiNote, velocity]);
     //console.log('midiNote: ' + velocity);
     setTimeout(function () {
       //console.log('note off');
-      output.sendMessage([NOTE_OFF, midiNote, velocity]);
+      output.sendMessage([NOTE_OFF + channel, midiNote, velocity]);
     }, duration);
   }, delay);
 }
