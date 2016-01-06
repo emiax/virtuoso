@@ -28,6 +28,8 @@ ChordType.prototype.getIntervalSet = function () {
   // Fifth
   if (props['+']) {
     intervals['augmented 5th'] = true;
+  } else if (props['-']) {
+    intervals['diminished 5th'] = true;
   } else {
     intervals['perfect 5th'] = true;
   }

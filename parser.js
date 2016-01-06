@@ -2,7 +2,9 @@ var Letter = require('./letter');
 var ChordType = require('./chordType');
 var Chord = require('./chord');
 var Key = require('./key');
+
 var names = require('./names');
+var modes = require('./modes');
 
 function Parser(str) {
   this._string = str;
@@ -11,6 +13,14 @@ function Parser(str) {
 
 Parser.prototype.remaining = function () {
   return this._string.length - this._pointer;
+}
+
+Parser.prototype.tell = function () {
+  return this._pointer;
+}
+
+Parser.prototype.seek = function (index) {
+  this._pointer = index;
 }
 
 Parser.prototype.get = function (nChars) {
@@ -52,7 +62,7 @@ Parser.prototype.parseNumber = function () {
 
 Parser.prototype.parseLetter = function () {
   if (this.remaining() < 1) {
-    throw "unexpected end of input";
+    return undefined;
   }
   
   var midiOffset = {
@@ -67,7 +77,7 @@ Parser.prototype.parseLetter = function () {
   
 
   if (midiOffset === undefined) {
-    throw "invalid character";
+    return undefined;
   }
   
   if (this.remaining() >= 1) {
@@ -100,11 +110,12 @@ Parser.prototype.parseDrum = function () {
       return new Key(drumHalftones[i][1]);
     }
   }
-  throw "invalid drum name";
+  return false;
 }
 
 Parser.prototype.parseChordType = function () {
   var props = {};
+  var fallback = this.tell();
   while (this.remaining() > 0) {
     if (this.consume('6')) {
       props['6'] = true;
@@ -131,9 +142,13 @@ Parser.prototype.parseChordType = function () {
       props['add11'] = true;
     } else if (this.consume('add13')) {
       props['add13'] = true;
-    } else if (this.consume('+') ||
+    } else if (this.consume('+5') ||
+               this.consume('+') ||
                this.consume('aug')) {
       props['+'] = true;
+    } else if (this.consume('-5') ||
+               this.consume('-')) {
+      props['-'] = true;
     } else if (this.consume('dim')) {
       props['dim'] = true;
     } else if (this.consume("-") ||
@@ -141,14 +156,23 @@ Parser.prototype.parseChordType = function () {
                this.consume("minor")) {
       props['m'] = true;
     } else {
-      throw "invalid chord type"
+      this.seek(fallback);
+      return undefined;
     }
   }
   
   return new ChordType(props);
 }
 
-
+Parser.prototype.parseMode = function () {
+  var modeNames = modes.getNames();
+  for (var i = 0; i < modeNames.length; i++) {
+    if (this.consume(modeNames[i])) {
+      return modes.createFromModeName(modeNames[i]);
+    }
+  }
+  return false;
+}
 
 Parser.prototype.parseChord = function (name) {
   var letter = this.parseLetter();
@@ -192,6 +216,15 @@ Parser.parseChord = function (name) {
     throw "expected end of input"
   }
   return chord;
+}
+
+Parser.parseMode = function (name) {
+  var p = new Parser(name);
+  var intervalSet = p.parseMode();
+  if (p.remaining() > 0) {
+    throw "expected end of input"
+  }
+  return intervalSet;
 }
 
 

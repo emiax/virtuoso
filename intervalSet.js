@@ -20,5 +20,13 @@ IntervalSet.prototype.getHalftones = function () {
   return a;
 }
 
-  
+IntervalSet.prototype.addHalftone = function (i) {
+  this._members[i] = true;
+}
+
+IntervalSet.prototype.removeHalftone = function (i) {
+  this._members[i] = false;
+}
+
+
 module.exports = IntervalSet;
