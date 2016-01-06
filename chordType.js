@@ -32,12 +32,17 @@ ChordType.prototype.getIntervalSet = function () {
     intervals['perfect 5th'] = true;
   }
 
+  // Sixth
+  if (props['6']) {
+    intervals['6th'] = true;
+  }
+
+  // Seventh
   if (props['7']) {
     intervals['minor 7th'] = true;
   } else if (props['maj7']) {
     intervals['major 7th'] = true;
   }
-    
     
   // Ninth
   if (props['add9']) {
