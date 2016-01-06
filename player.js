@@ -8,7 +8,7 @@ function Player(meter, tempo) {
 
 
 
-Player.prototype.play = function (sequence) {
+Player.prototype.play = function (sequence, channel) {
   var pulseTime = (60 * 1000) / this._tempo;
   var measureTime = pulseTime * this._meter.numerator();
   sequence.forEachNote(function (note, timing) {
@@ -17,7 +17,7 @@ Player.prototype.play = function (sequence) {
     var midiNote = note.key().getMidiNote();
     var velocity = note.velocity();
   
-    midiPlayer.playNote(midiNote, velocity, startTime, duration);
+    midiPlayer.playNote(midiNote, velocity, startTime, duration, channel);
   });
 
 }

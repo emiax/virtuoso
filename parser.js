@@ -1,8 +1,8 @@
 var Letter = require('./letter');
 var ChordType = require('./chordType');
 var Chord = require('./chord');
-
-
+var Key = require('./key');
+var names = require('./names');
 
 function Parser(str) {
   this._string = str;
@@ -42,6 +42,14 @@ Parser.prototype.consume = function (str) {
   return false;
 }
 
+Parser.prototype.parseNumber = function () {
+  var number = '';
+  while (!Number.isNaN(this.peek()) || this.peek() === '-') {
+    number += this.get();
+  }
+  return +number;
+}
+
 Parser.prototype.parseLetter = function () {
   if (this.remaining() < 1) {
     throw "unexpected end of input";
@@ -72,6 +80,28 @@ Parser.prototype.parseLetter = function () {
   
   return new Letter(midiOffset);
 };
+
+Parser.prototype.parseKey = function () {
+  var key;
+  try {
+    key = this.parseDrum();
+  } catch (e) {
+    var letter = this.parseLetter();
+    var octave = this.parseNumber();
+    key = Key(letter, octave);
+  }
+  return key;
+}
+
+Parser.prototype.parseDrum = function () {
+  var drumHalftones = names.getDrumHalftones();
+  for (var i = 0; i < drumHalftones.length; i++) {
+    if (this.consume(drumHalftones[i][0])) {
+      return new Key(drumHalftones[i][1]);
+    }
+  }
+  throw "invalid drum name";
+}
 
 Parser.prototype.parseChordType = function () {
   var props = {};
@@ -135,6 +165,15 @@ Parser.parseLetter = function (name) {
     throw "expected end of input"
   }
   return letter;
+}
+
+Parser.parseKey = function (name) {
+  var p = new Parser(name);
+  var key = p.parseKey();
+  if (p.remaining() > 0) {
+    throw "expected end of input"
+  }
+  return key;
 }
 
 Parser.parseChordType = function (name) {
