@@ -8,7 +8,13 @@ var Sequence = require('./sequence');
 var sequence = new Sequence();
 
 
-function insertArpeggio(chord, sequence, start) {
+// http://jsfromhell.com/array/shuffle
+function shuffle(o){
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+}
+
+function insertArpeggio(chord, sequence, duration, start) {
   var letters = chord.getLetterSet().getLetters();
   var keys = [];
   letters.forEach(function (l) {
@@ -18,21 +24,22 @@ function insertArpeggio(chord, sequence, start) {
     keys.push(new Key(l, 6));
   });
 
-  
-  var i = 0; 
-  keys.forEach(function (k) {
-    var note = new Note(k, 1/8, 30 + Math.random() * 70);
-    sequence.insert(note, start + i * 1/8);
-    i++;
-  });
+  shuffle(keys);
+
+  var noteIndex = 0;
+  for (var i = 0; i < duration; i += 1/8) {
+    var note = new Note(keys[noteIndex % keys.length], 1/8, 30 + Math.random() * 70);
+    sequence.insert(note, start + i);
+    noteIndex++;
+  };
 }
 
 var l = 0;
 for (var i = 0; i < 5; i++) {
-  insertArpeggio(Parser.parseChord('Cmaj7'), sequence, l + 0);
-  insertArpeggio(Parser.parseChord('Cmaj7'), sequence, l + 1);
-  insertArpeggio(Parser.parseChord('Dm7'), sequence, l + 2);
-  insertArpeggio(Parser.parseChord('Dm7'), sequence, l + 3);
+  insertArpeggio(Parser.parseChord('Bbmaj7'), sequence, 2, l + 0);
+  insertArpeggio(Parser.parseChord('Ebmaj7'), sequence, 2, l + 2);
+  insertArpeggio(Parser.parseChord('Dbmaj7'), sequence, 2, l + 4);
+  insertArpeggio(Parser.parseChord('Abmaj7'), sequence, 2, l + 6);
   l += 4;
 }
 
